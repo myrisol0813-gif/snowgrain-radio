@@ -24,7 +24,7 @@ export function validateMessage(kind, message, email, imageCount = 0) {
   if (kind === "tuft") {
     if (!cleanMessage) return "还没有让我瞅见毛土豆们。";
     if (!isEmail(email)) return "邮箱看起来还没有写完整。";
-    if (imageCount > 0) return "毛团区现在只收文字和邮箱。";
+    // Tuft submissions also accept private reference photos, up to the shared image limits.
   }
   return null;
 }

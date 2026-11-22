@@ -14,6 +14,7 @@ import {
   verifyAdminSession
 } from "./core.js";
 import {createReceipt,receiptInsert,lookupReceipt,receiptMedia,addReplyData,saveReply,adminReplyMedia} from "./replies.js";
+import {publicWall,changePublication,removeSubmission,removeOwnSubmission} from "./community.js";
 
 const ADMIN_COOKIE = "snowgrain_admin";
 const STATUS_VALUES = new Set(["new", "held", "done", "archived"]);
@@ -164,6 +165,7 @@ async function handleSubmission(request, env, ctx) {
 
   const message = String(form.get("message") || "").trim();
   const email = String(form.get("email") || "").trim();
+  const allowPublic = kind === "ask" && form.get("allowPublic") === "yes" && !!message;
   const validationError = validateMessage(kind, message, email, images.length);
   if (validationError) return fail(validationError);
 
@@ -207,8 +209,8 @@ async function handleSubmission(request, env, ctx) {
     const statements = [
       env.DB.prepare(
         "INSERT INTO submissions(" +
-          "id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at" +
-          ") VALUES (?, ?, ?, ?, ?, 'new', ?, ?)"
+          "id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public" +
+          ") VALUES (?, ?, ?, ?, ?, 'new', ?, ?, ?, 0)"
       ).bind(
         id,
         kind,
@@ -216,7 +218,8 @@ async function handleSubmission(request, env, ctx) {
         encryptedEmail.ciphertext,
         encryptedEmail.iv,
         now,
-        now
+        now,
+        allowPublic ? 1 : 0
       ),
       ...(receipt ? [receiptInsert(env, id, receipt.hash, now)] : []),
       ...attachmentRows.map((row) =>
@@ -299,7 +302,7 @@ async function listSubmissions(request, env) {
   }
   const where = clauses.length ? " WHERE " + clauses.join(" AND ") : "";
   const rows = await env.DB.prepare(
-    "SELECT id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at " +
+    "SELECT id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public " +
       "FROM submissions" + where + " ORDER BY created_at DESC LIMIT 100"
   ).bind(...bindings).all();
   const submissions = rows.results || [];
@@ -344,6 +347,8 @@ async function listSubmissions(request, env) {
       message: row.message,
       email,
       status: row.status,
+      allowPublic: row.allow_public === 1,
+      isPublic: row.is_public === 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       attachments: bySubmission.get(row.id) || []
@@ -442,8 +447,14 @@ async function routeApi(request, env, ctx) {
       turnstileSiteKey: env.TURNSTILE_SITE_KEY || ""
     });
   }
+  if (request.method === "GET" && path === "/api/gallery") {
+    return publicWall(request, env);
+  }
   if (request.method === "POST" && path === "/api/submissions") {
     return handleSubmission(request, env, ctx);
+  }
+  if (request.method === "DELETE" && path === "/api/receipt/submission") {
+    return removeOwnSubmission(request, env);
   }
   if (request.method === "POST" && path === "/api/receipt/lookup") {
     return lookupReceipt(request, env);
@@ -476,6 +487,13 @@ async function routeApi(request, env, ctx) {
   const submissionMatch = path.match(/^\/api\/admin\/submissions\/([a-f0-9-]+)$/i);
   if (request.method === "PATCH" && submissionMatch) {
     return updateSubmission(request, env, submissionMatch[1]);
+  }
+  if (request.method === "DELETE" && submissionMatch) {
+    return removeSubmission(env, submissionMatch[1]);
+  }
+  const visibilityMatch = path.match(/^\/api\/admin\/submissions\/([a-f0-9-]+)\/public$/i);
+  if (request.method === "PATCH" && visibilityMatch) {
+    return changePublication(request, env, visibilityMatch[1]);
   }
   const replyMatch = path.match(/^\/api\/admin\/submissions\/([a-f0-9-]+)\/reply$/i);
   if (request.method === "POST" && replyMatch) {

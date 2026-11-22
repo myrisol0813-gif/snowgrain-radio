@@ -1,7 +1,7 @@
 const state = {
   channel: "ask",
   config: { askOpen: true, tuftOpen: true, turnstileSiteKey: "" },
-  images: [],
+  images: { ask: [], tuft: [] },
   turnstile: { ask: null, tuft: null },
   turnstileToken: { ask: "", tuft: "" }
 };
@@ -11,8 +11,7 @@ const channelPanels = [...document.querySelectorAll("[data-channel-panel]")];
 const forms = [...document.querySelectorAll("[data-signal-form]")];
 const toast = document.querySelector("[data-success-toast]");
 const successText = document.querySelector("[data-success-text]");
-const imageInput = document.querySelector("#ask-images");
-const imagePreview = document.querySelector("[data-image-preview]");
+const imageInputs = [...document.querySelectorAll('input[type="file"][name="images"]')];
 const receiptDialog=document.querySelector("[data-receipt-dialog]");
 const receiptCodeEl=document.querySelector("[data-receipt-code]");
 let activeReceiptCode="";
@@ -144,9 +143,10 @@ async function normalizeImage(file) {
   }
 }
 
-function renderImages() {
+function renderImages(kind) {
+  const imagePreview=document.querySelector('[data-image-preview="'+kind+'"]');
   imagePreview.replaceChildren();
-  state.images.forEach((file, index) => {
+  state.images[kind].forEach((file, index) => {
     const item = document.createElement("div");
     item.className = "preview-item";
     const image = document.createElement("img");
@@ -159,8 +159,8 @@ function renderImages() {
     remove.setAttribute("aria-label", "移除这张图");
     remove.textContent = "×";
     remove.addEventListener("click", () => {
-      state.images.splice(index, 1);
-      renderImages();
+      state.images[kind].splice(index, 1);
+      renderImages(kind);
     });
     item.append(image, remove);
     imagePreview.append(item);
@@ -168,11 +168,32 @@ function renderImages() {
 }
 
 async function selectImages(event) {
-  const incoming = [...event.target.files].slice(0, 4);
-  const normalized = [];
-  for (const file of incoming) normalized.push(await normalizeImage(file));
-  state.images = normalized.slice(0, 4);
-  renderImages();
+  const kind=event.target.id==="tuft-images"?"tuft":"ask";
+  const form=document.querySelector('[data-signal-form="'+kind+'"]');
+  const status=form.querySelector("[data-form-status]");
+  const incoming=[...event.target.files];
+  event.target.value="";
+  if(state.images[kind].length+incoming.length>4){
+    status.textContent="一次最多添加四张图片。";
+    return;
+  }
+  const normalized=[];
+  for(const file of incoming){
+    if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+      status.textContent="只支持 JPG、PNG 或 WebP。";
+      return;
+    }
+    normalized.push(await normalizeImage(file));
+  }
+  const next=[...state.images[kind],...normalized];
+  const total=next.reduce((count,file)=>count+file.size,0);
+  if(next.some(file=>file.size>6*1024*1024)||total>20*1024*1024){
+    status.textContent="图片单张不能超过 6MB，合计不能超过 20MB。";
+    return;
+  }
+  state.images[kind]=next;
+  status.textContent="";
+  renderImages(kind);
 }
 
 async function submitForm(event) {
@@ -189,19 +210,18 @@ async function submitForm(event) {
   data.set("message", form.elements.message.value);
   data.set("email", kind === "tuft" ? form.elements.email.value : "");
   data.set("turnstileToken", state.turnstileToken[kind] || "");
-  if (kind === "ask") {
-    state.images.forEach((file) => data.append("images", file, file.name));
-  }
+  if(kind==="ask")data.set("allowPublic",form.elements.allowPublic?.checked?"yes":"no");
+  state.images[kind].forEach((file)=>data.append("images",file,file.name));
 
   try {
     const response = await fetch("/api/submissions", { method: "POST", body: data });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "没有顺利塞进去。");
     form.reset();
-    if (kind === "ask") {
-      state.images = [];
-      renderImages();
-    }
+    state.images[kind]=[];
+    renderImages(kind);
+    const area=form.querySelector("textarea");
+    if(area)area.style.height="";
     if (window.turnstile && state.turnstile[kind] !== null) {
       window.turnstile.reset(state.turnstile[kind]);
       state.turnstileToken[kind] = "";
@@ -226,6 +246,12 @@ channelButtons.forEach((button) => {
   button.addEventListener("click", () => setChannel(button.dataset.channelTarget));
 });
 forms.forEach((form) => form.addEventListener("submit", submitForm));
-imageInput.addEventListener("change", selectImages);
+imageInputs.forEach(input=>input.addEventListener("change",selectImages));
+document.querySelectorAll(".signal-form textarea").forEach(textarea=>{
+  textarea.addEventListener("input",()=>{
+    textarea.style.height="auto";
+    textarea.style.height=Math.min(230,Math.max(112,textarea.scrollHeight))+"px";
+  });
+});
 setChannel("ask");
 loadConfig();

@@ -190,7 +190,7 @@ function createReplyEditor(submission) {
   title.textContent=submission.reply?"编辑已经发出的回声":"给这封信写回声";
   const textarea=document.createElement("textarea");
   textarea.name="message";
-  textarea.rows=4;
+  textarea.rows=3;
   textarea.maxLength=12000;
   textarea.placeholder="写一点回声给这封信……";
   textarea.value=submission.reply?.message||"";
@@ -205,8 +205,18 @@ function createReplyEditor(submission) {
   photos.multiple=true;
   photos.accept="image/jpeg,image/png,image/webp";
   const photoLabel=document.createElement("label");
-  photoLabel.textContent="附上回复图片（最多四张；选择新图会替换旧图）";
-  photoLabel.append(photos);
+  const fileButton=document.createElement("span");
+  fileButton.className="soft-button";
+  fileButton.textContent="添加图片 +";
+  photoLabel.className="reply-image-label";
+  photoLabel.append(fileButton,photos);
+  const selectionCount=document.createElement("small");
+  selectionCount.setAttribute("aria-live","polite");
+  photos.addEventListener("change",()=>{
+    const count=photos.files.length;
+    selectionCount.textContent=count?("已选 "+count+" 张，保存后替换旧图"):"";
+  });
+  photoLabel.append(selectionCount);
   form.append(photoLabel);
   if(submission.reply?.attachments?.length){
     const clearLabel=document.createElement("label");
@@ -251,27 +261,103 @@ function createReplyEditor(submission) {
 }
 
 function createSubmissionCard(submission) {
-  const card = document.createElement("article");
-  card.className = "submission-card";
-  const head = document.createElement("div");
-  head.className = "submission-head";
-  const kind = document.createElement("span");
-  kind.className = "signal-kind" + (submission.kind === "tuft" ? " is-tuft" : "");
-  kind.textContent = submission.kind === "tuft" ? "毛团频道" : "收信频道";
-  const time = document.createElement("time");
-  time.className = "signal-time";
-  time.dateTime = submission.createdAt;
-  time.textContent = formatTime(submission.createdAt);
-  head.append(kind, time);
+  const card=document.createElement("article");
+  card.className="submission-card";
+  const details=document.createElement("details");
+  details.className="letter-details";
+  const summary=document.createElement("summary");
+  summary.className="letter-summary";
+  const top=document.createElement("div");
+  top.className="submission-head";
+  const kind=document.createElement("span");
+  kind.className="signal-kind"+(submission.kind==="tuft"?" is-tuft":"");
+  kind.textContent=submission.kind==="tuft"?"小毛团":"普通提问";
+  const time=document.createElement("time");
+  time.className="signal-time";time.dateTime=submission.createdAt;
+  time.textContent=formatTime(submission.createdAt);
+  const state=document.createElement("span");
+  state.className="state-hint";
+  const statusLabels={new:"刚收到",held:"已经拎住",done:"已经掉落",archived:"收起来了"};
+  state.textContent=statusLabels[submission.status]||"";
+  top.append(kind,time,state);
+  const preview=document.createElement("p");
+  preview.className="letter-preview";
+  preview.textContent=submission.message||"（附图来信）";
+  const arrow=document.createElement("span");
+  arrow.className="letter-chevron";arrow.setAttribute("aria-hidden","true");
+  arrow.textContent="⌄";
+  summary.append(top,preview,arrow);
+  details.append(summary);
+  const content=document.createElement("div");
+  content.className="letter-expanded";
+  const full=document.createElement("p");
+  full.className="submission-message";
+  full.textContent=submission.message||"（只放了图片）";
+  content.append(full);
+  if(submission.email)content.append(createEmailRow(submission.email));
+  if(submission.attachments.length)content.append(createAttachments(submission.attachments));
+  const stateControl=statusSelect(submission);
+  stateControl.querySelector("select").addEventListener("change",event=>{
+    state.textContent=statusLabels[event.currentTarget.value]||"";
+  });
+  content.append(stateControl);
+  if(submission.kind==="ask"){
+    const replyFold=document.createElement("details");
+    replyFold.className="reply-fold";
+    const replySummary=document.createElement("summary");
+    replySummary.textContent=submission.reply?"编辑已发出的回声":"给这封信写回声";
+    replyFold.append(replySummary,createReplyEditor(submission));
+    content.append(replyFold);
 
-  const message = document.createElement("p");
-  message.className = "submission-message";
-  message.textContent = submission.message || "（只放了图片）";
-  card.append(head, message);
-  if (submission.email) card.append(createEmailRow(submission.email));
-  if (submission.attachments.length) card.append(createAttachments(submission.attachments));
-  card.append(statusSelect(submission));
-  if(submission.kind==="ask") card.append(createReplyEditor(submission));
+    const publicRow=document.createElement("div");
+    publicRow.className="publication-control";
+    if(!submission.allowPublic){
+      publicRow.textContent="本封信未授权公开展示，仅能私下回复。";
+    }else if(!submission.reply?.message?.trim()||!submission.message.trim()){
+      publicRow.textContent="已同意公开文字问答。回复后可选择展示。";
+    }else{
+      const publicLabel=document.createElement("label");
+      const toggle=document.createElement("input");
+      toggle.type="checkbox";toggle.checked=!!submission.isPublic;
+      const description=document.createElement("span");
+      description.textContent="在公开展示区显示本次文字问答";
+      publicLabel.append(toggle,description);
+      publicRow.append(publicLabel);
+      const note=document.createElement("small");
+      note.textContent="不展示邮箱、取信码、来信图片或回复图片。";
+      publicRow.append(note);
+      toggle.addEventListener("change",async()=>{
+        const selected=toggle.checked;
+        toggle.disabled=true;
+        try{
+          await api("/api/admin/submissions/"+encodeURIComponent(submission.id)+"/public",{
+            method:"PATCH",body:JSON.stringify({published:selected})
+          });
+        }catch(error){
+          toggle.checked=!selected;
+          adminMessage.textContent=error.message||"公开设置没有保存。";
+        }finally{toggle.disabled=false;}
+      });
+    }
+    content.append(publicRow);
+  }
+  const danger=document.createElement("button");
+  danger.type="button";danger.className="danger-link";danger.textContent="永久删除这封来信";
+  danger.addEventListener("click",async()=>{
+    if(!window.confirm("确定永久删除这封来信、附图与回复吗？\n此操作不可恢复。"))return;
+    danger.disabled=true;
+    try{
+      await api("/api/admin/submissions/"+encodeURIComponent(submission.id),{method:"DELETE"});
+      await loadSubmissions();
+      adminMessage.textContent="这封来信及附图已经删除。";
+    }catch(error){
+      danger.disabled=false;
+      adminMessage.textContent=error.message||"删除失败，请重试。";
+    }
+  });
+  content.append(danger);
+  details.append(content);
+  card.append(details);
   return card;
 }
 

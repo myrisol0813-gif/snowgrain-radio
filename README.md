@@ -120,6 +120,44 @@ Do not claim that installing this branch alone provides Android notifications.
 That follow-up requires implementing and securing a dedicated receiver,
 notification delivery, and APK build.
 
+## V1.2: compact letters, private reference pictures, and public wall
+
+- The Native-inspired stationery remains unchanged in its torn edge, paperclip
+  color and paper shade. Controls and typography are smaller; reply editors in
+  the private control room are folded until requested.
+- Both ask and tuft forms can accept 1–4 JPG/PNG/WebP private images (6 MB
+  per image, 20 MB total), along with their existing text/email rules.
+- The pickup link is more visible; code holders can delete their own ask
+  submission and its reply after explicit browser confirmation.
+- The owner can permanently delete any submission from /admin/, including
+  private original and reply attachments. The UI asks for confirmation first.
+- /gallery/ displays **text-only** questions and replies. A letter appears
+  there **only** if the visitor voluntarily opts in to publication at
+  submission time AND the owner explicitly enables public display after a
+  text reply is saved. Default is always private. Email addresses, internal
+  IDs, receipt codes, original images and reply images are never made public.
+  Legacy ask submissions have no public consent and cannot be published.
+- Removing a submission removes it from the public wall and invalidates
+  its pickup code. Revoking publication in /admin/ hides the entry again.
+
+### Database release
+
+\`migrations/0003_public_wall.sql\` only adds two default-false submission
+flags and an index; it does not remove or rewrite existing letters.
+The existing Cloudflare Workers Builds production command \`npm run deploy\`
+must continue to run checks, remote D1 migrations, then Worker deploy.
+Before merging, confirm CI and check that preview branches remain disabled
+unless an isolated preview D1/R2 environment has been set up.
+
+**Acceptance:** on a phone, check both forms' compact layout and image
+previews/removal, submit a private tuft with an image, verify inbox filtering
+and media reveal, submit an ask without public consent and verify it never
+appears on /gallery/, submit a consented ask, send a text reply in /admin/,
+then manually publish it. Verify /gallery/ shows only question and text reply.
+Revoke publication. Test wrong pickup code, owner deletion and code-holder
+deletion on disposable test letters only. Confirm deletion after R2 cleanup
+and that unrelated letters remain accessible.
+
 ## Signal webhook
 
 When configured, every successful submission emits a JSON POST with no message text, email address, or image data:
