@@ -15,8 +15,11 @@
     <main class="station-shell snow-letter-page">
       <header class="station-header">
         <div class="station-heading">
-          <div class="station-mark" aria-hidden="true">
-            <span></span><span></span><span></span>
+          <div class="station-topline">
+            <div class="station-mark" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <a class="gallery-entry" href="/gallery/">展示区 <span aria-hidden="true">↗</span></a>
           </div>
           <p class="eyebrow">SNOWGRAIN RADIO</p>
           <h1>雪粒电台</h1>
@@ -41,7 +44,7 @@
         </button>
       </nav>
 
-      <p class="pickup-link"><a href="/pickup/">凭取信码，取回一封回声</a></p>
+      <p class="pickup-link"><a href="/pickup/">✉ 凭取信码查看回复 <span aria-hidden="true">›</span></a></p>
 
       <section class="channel-panel is-active" data-channel-panel="ask">
         <div class="channel-copy">
@@ -56,13 +59,13 @@
           <textarea
             id="ask-message"
             name="message"
-            rows="9"
+            rows="4"
             maxlength="12000"
             placeholder="（什么都可以）"
           ></textarea>
 
           <div class="image-picker">
-            <label class="soft-button" for="ask-images">放几张图</label>
+            <label class="soft-button" for="ask-images">添加图片 +</label>
             <input
               id="ask-images"
               name="images"
@@ -70,9 +73,12 @@
               accept="image/jpeg,image/png,image/webp"
               multiple
             >
-            <span class="image-hint">最多四张</span>
           </div>
-          <div class="image-preview" data-image-preview aria-live="polite"></div>
+          <div class="image-preview" data-image-preview="ask" aria-live="polite"></div>
+          <label class="publication-choice">
+            <input type="checkbox" name="allowPublic" value="yes">
+            <span>若收到回复，允许将本次文字问答公开展示 <small>仅文字；图片不会公开，仍需台长确认</small></span>
+          </label>
           <div class="turnstile-slot" data-turnstile-slot="ask"></div>
           <p class="form-status" data-form-status aria-live="polite"></p>
           <button class="submit-button" type="submit">发出信号</button>
@@ -93,11 +99,22 @@
           <textarea
             id="tuft-message"
             name="message"
-            rows="11"
+            rows="4"
             maxlength="12000"
             placeholder="（让我瞅瞅毛土豆们）"
             required
           ></textarea>
+          <div class="image-picker">
+            <label class="soft-button" for="tuft-images">添加图片 +</label>
+            <input
+              id="tuft-images"
+              name="images"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+            >
+          </div>
+          <div class="image-preview" data-image-preview="tuft" aria-live="polite"></div>
           <label class="sr-only" for="tuft-email">邮箱</label>
           <input
             id="tuft-email"
