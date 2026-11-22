@@ -208,6 +208,7 @@ async function submitForm(event) {
   const data = new FormData();
   data.set("kind", kind);
   data.set("message", form.elements.message.value);
+  if (kind === "ask") data.set("nickname", form.elements.nickname?.value || "");
   data.set("email", kind === "tuft" ? form.elements.email.value : "");
   data.set("turnstileToken", state.turnstileToken[kind] || "");
   if(kind==="ask")data.set("allowPublic",form.elements.allowPublic?.checked?"yes":"no");

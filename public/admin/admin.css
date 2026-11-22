@@ -505,3 +505,25 @@ select {
   .filters select {font-size:.76rem;}
   .letter-expanded .attachment-grid {grid-template-columns:repeat(3,minmax(0,90px));}
 }
+
+
+/* Owner-only notification bell. Quiet, compact, no new visual system. */
+.notification-card {margin-top:10px;}
+.notification-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.notification-heading .eyebrow {font-size:.65rem;margin:0 0 2px;letter-spacing:.12em;}
+.notification-heading h2 {font-size:1.15rem;line-height:1.35;margin:0;font-weight:560;}
+.notification-device-count {
+  color:#63859c;background:rgba(175,196,216,.19);
+  padding:4px 10px;border-radius:999px;font-size:.74rem;white-space:normal;text-align:right;
+}
+.notification-help {font-size:.79rem;color:#7e92a1;line-height:1.65;margin:9px 0;}
+.notification-actions {display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.notification-actions button {font-size:.79rem;min-height:34px;border-radius:10px;padding:6px 11px;}
+.notification-actions [data-notification-clear] {color:#8f848a;background:rgba(175,196,216,.09);}
+.notification-actions [hidden] {display:none;}
+.notification-card .form-status {font-size:.78rem;line-height:1.6;margin:7px 0 0;}
+.notification-card .form-status:empty {display:none;}
+@media(max-width:520px) {
+  .notification-heading {align-items:flex-start;}
+  .notification-device-count {font-size:.68rem;}
+}

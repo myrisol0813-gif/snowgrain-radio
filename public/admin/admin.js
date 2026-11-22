@@ -47,7 +47,7 @@ async function checkSession() {
   try {
     await api("/api/admin/session");
     showDashboard();
-    await Promise.all([loadSettings(), loadSubmissions()]);
+    await Promise.all([loadSettings(), loadSubmissions(), refreshNotificationStatus()]);
   } catch {
     showLogin();
   }
@@ -65,7 +65,7 @@ async function login(event) {
     });
     loginForm.reset();
     showDashboard();
-    await Promise.all([loadSettings(), loadSubmissions()]);
+    await Promise.all([loadSettings(), loadSubmissions(), refreshNotificationStatus()]);
   } catch (error) {
     loginStatus.textContent = error.message;
   } finally {
@@ -280,6 +280,12 @@ function createSubmissionCard(submission) {
   const statusLabels={new:"刚收到",held:"已经拎住",done:"已经掉落",archived:"收起来了"};
   state.textContent=statusLabels[submission.status]||"";
   top.append(kind,time,state);
+  if(submission.nickname){
+    const nick=document.createElement("span");
+    nick.className="state-hint";
+    nick.textContent="寄信人 · "+submission.nickname;
+    top.append(nick);
+  }
   const preview=document.createElement("p");
   preview.className="letter-preview";
   preview.textContent=submission.message||"（附图来信）";
@@ -388,6 +394,106 @@ async function logout() {
     showLogin();
   }
 }
+
+const notificationEnable=document.querySelector("[data-notification-enable]");
+const notificationDisable=document.querySelector("[data-notification-disable]");
+const notificationClear=document.querySelector("[data-notification-clear]");
+const notificationStatusText=document.querySelector("[data-notification-status]");
+const notificationCount=document.querySelector("[data-notification-count]");
+
+function pushSupported(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window &&
+    window.isSecureContext;
+}
+function decodePublicKey(text){
+  const base64=text.replace(/-/g,"+").replace(/_/g,"/");
+  const decoded=atob(base64+"=".repeat((4-base64.length%4)%4));
+  return Uint8Array.from(decoded,c=>c.charCodeAt(0));
+}
+async function registeredPush(){
+  if(!pushSupported())return null;
+  const registration=await navigator.serviceWorker.getRegistration("/admin/");
+  if(!registration)return null;
+  return registration.pushManager.getSubscription();
+}
+async function refreshNotificationStatus(){
+  try{
+    const result=await api("/api/admin/notifications/status",{cache:"no-store"});
+    const local=await registeredPush();
+    notificationEnable.hidden=!!local;
+    notificationDisable.hidden=!local;
+    notificationCount.textContent=local?
+      "本机已开启 · "+result.subscribedDevices+" 台设备":"已授权 "+result.subscribedDevices+" 台设备";
+    if(!pushSupported())notificationStatusText.textContent=
+      "当前浏览器不支持后台推送，可使用支持通知的安卓浏览器打开值班室。";
+  }catch(error){
+    notificationStatusText.textContent=error.message||"无法读取提醒状态。";
+  }
+}
+notificationEnable.addEventListener("click",async()=>{
+  if(!pushSupported()){
+    notificationStatusText.textContent="这个浏览器暂不支持后台通知。";
+    return;
+  }
+  notificationEnable.disabled=true;
+  notificationStatusText.textContent="";
+  try{
+    // Permission request must occur directly in this user-initiated click.
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted")throw Error("通知权限没有开启，可以从浏览器网站权限中重新允许。");
+    const registration=await navigator.serviceWorker.register(
+      "/admin/notifications-sw.js",{scope:"/admin/"}
+    );
+    const key=await api("/api/admin/notifications/public-key",{cache:"no-store"});
+    let subscription=await registration.pushManager.getSubscription();
+    if(!subscription){
+      subscription=await registration.pushManager.subscribe({
+        userVisibleOnly:true,applicationServerKey:decodePublicKey(key.publicKey)
+      });
+    }
+    try{
+      await api("/api/admin/notifications/subscribe",{
+        method:"POST",body:JSON.stringify({subscription:subscription.toJSON()})
+      });
+    }catch(error){
+      await subscription.unsubscribe();
+      throw error;
+    }
+    notificationStatusText.textContent="新信提醒已经在此设备开启。";
+    await refreshNotificationStatus();
+  }catch(error){
+    notificationStatusText.textContent=error.message||"提醒没有开启成功。";
+  }finally{notificationEnable.disabled=false;}
+});
+notificationDisable.addEventListener("click",async()=>{
+  notificationDisable.disabled=true;
+  try{
+    const subscription=await registeredPush();
+    if(subscription){
+      await api("/api/admin/notifications/unsubscribe",{
+        method:"POST",body:JSON.stringify({endpoint:subscription.endpoint})
+      });
+      await subscription.unsubscribe();
+    }
+    notificationStatusText.textContent="本设备的新信提醒已关闭。";
+    await refreshNotificationStatus();
+  }catch(error){
+    notificationStatusText.textContent=error.message||"关闭提醒失败。";
+  }finally{notificationDisable.disabled=false;}
+});
+notificationClear.addEventListener("click",async()=>{
+  if(!window.confirm("确定撤销全部设备的新信提醒授权吗？这不会删除任何来信。"))return;
+  notificationClear.disabled=true;
+  try{
+    await api("/api/admin/notifications/clear",{method:"POST",body:"{}"});
+    const local=await registeredPush();
+    if(local)await local.unsubscribe();
+    notificationStatusText.textContent="已经撤销全部设备的新信提醒授权。";
+    await refreshNotificationStatus();
+  }catch(error){
+    notificationStatusText.textContent=error.message||"撤销失败。";
+  }finally{notificationClear.disabled=false;}
+});
 
 loginForm.addEventListener("submit", login);
 document.querySelectorAll("[data-setting]").forEach((checkbox) => {

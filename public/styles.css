@@ -704,3 +704,49 @@ textarea:focus,input:focus {
   .image-preview {grid-template-columns:repeat(4,minmax(0,1fr));}
   .station-footer {font-size:.67rem;}
 }
+
+
+/* Snowgrain V1.3: each public question and reply lives on one little letter. */
+.signal-form input[type="text"] {
+  box-sizing:border-box;width:100%;min-height:42px;
+  padding:9px 13px;border-radius:12px;
+  font:inherit;font-size:.85rem;line-height:1.45;color:#445f74;
+  border:1px solid rgba(145,170,189,.27);
+  background:rgba(255,255,255,.38);
+  outline-offset:2px;
+}
+.signal-form input[type="text"]::placeholder {color:#9caab4;opacity:1;}
+.signal-form input[type="text"]:focus-visible {outline:2px solid #99b4c6;}
+.gallery-list {gap:15px;padding:2px 0 17px;}
+.gallery-letter {
+  padding:19px clamp(16px,4vw,24px) 20px;
+  margin:0;
+  border:1px solid rgba(162,184,197,.32);
+  border-radius:15px 14px 16px 15px;
+  background:linear-gradient(147deg,rgba(255,255,255,.77) 0%,rgba(248,250,248,.75) 58%,rgba(244,249,252,.59) 100%);
+  box-shadow:0 3px 11px rgba(120,146,165,.08),inset 0 1px 0 rgba(255,255,255,.75);
+  overflow-wrap:anywhere;
+}
+.gallery-letter-heading {
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;
+  margin:0 0 9px;
+}
+.gallery-letter-heading .eyebrow {margin:0;color:#93a6b4;}
+.gallery-nickname {
+  color:#69869a;font-size:.84rem;font-weight:550;line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.gallery-question {font-size:.97rem;line-height:1.78;margin:0 0 17px;}
+.gallery-letter-reply {
+  margin-top:0;padding:14px 0 0;
+  border-top:1px solid rgba(155,179,195,.25);
+}
+.gallery-letter-reply .eyebrow {margin:0 0 7px;color:#a0aab0;}
+.gallery-answer {font-size:.93rem;line-height:1.78;}
+@media(max-width:520px) {
+  .gallery-list {gap:11px;}
+  .gallery-letter {padding:16px 15px 17px;border-radius:13px;}
+  .gallery-question {font-size:.94rem;margin-bottom:14px;}
+  .gallery-answer {font-size:.91rem;}
+  .signal-form input[type="text"] {font-size:.83rem;}
+}

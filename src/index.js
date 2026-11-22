@@ -15,6 +15,7 @@ import {
 } from "./core.js";
 import {createReceipt,receiptInsert,lookupReceipt,receiptMedia,addReplyData,saveReply,adminReplyMedia} from "./replies.js";
 import {publicWall,changePublication,removeSubmission,removeOwnSubmission} from "./community.js";
+import {notifyBrowsers,publicVapidKey,subscriptionStatus,subscribeBrowser,unsubscribeBrowser,clearSubscriptions} from "./notify.js";
 
 const ADMIN_COOKIE = "snowgrain_admin";
 const STATUS_VALUES = new Set(["new", "held", "done", "archived"]);
@@ -165,6 +166,8 @@ async function handleSubmission(request, env, ctx) {
 
   const message = String(form.get("message") || "").trim();
   const email = String(form.get("email") || "").trim();
+  const nickname = kind === "ask" ? String(form.get("nickname") || "").trim() : "";
+  if (nickname.length > 36 || /[\r\n\u0000-\u001f]/u.test(nickname)) return fail("小昵称请控制在 36 个字符以内。");
   const allowPublic = kind === "ask" && form.get("allowPublic") === "yes" && !!message;
   const validationError = validateMessage(kind, message, email, images.length);
   if (validationError) return fail(validationError);
@@ -209,8 +212,8 @@ async function handleSubmission(request, env, ctx) {
     const statements = [
       env.DB.prepare(
         "INSERT INTO submissions(" +
-          "id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public" +
-          ") VALUES (?, ?, ?, ?, ?, 'new', ?, ?, ?, 0)"
+          "id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public, nickname" +
+          ") VALUES (?, ?, ?, ?, ?, 'new', ?, ?, ?, 0, ?)"
       ).bind(
         id,
         kind,
@@ -219,7 +222,8 @@ async function handleSubmission(request, env, ctx) {
         encryptedEmail.iv,
         now,
         now,
-        allowPublic ? 1 : 0
+        allowPublic ? 1 : 0,
+        nickname
       ),
       ...(receipt ? [receiptInsert(env, id, receipt.hash, now)] : []),
       ...attachmentRows.map((row) =>
@@ -253,6 +257,7 @@ async function handleSubmission(request, env, ctx) {
         kind,
         created_at: now
       }),
+      notifyBrowsers(env),
       env.DB.prepare("DELETE FROM rate_limits WHERE window_ends_at < ?")
         .bind(now)
         .run()
@@ -302,7 +307,7 @@ async function listSubmissions(request, env) {
   }
   const where = clauses.length ? " WHERE " + clauses.join(" AND ") : "";
   const rows = await env.DB.prepare(
-    "SELECT id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public " +
+    "SELECT id, kind, message, email_ciphertext, email_iv, status, created_at, updated_at, allow_public, is_public, nickname " +
       "FROM submissions" + where + " ORDER BY created_at DESC LIMIT 100"
   ).bind(...bindings).all();
   const submissions = rows.results || [];
@@ -345,6 +350,7 @@ async function listSubmissions(request, env) {
       id: row.id,
       kind: row.kind,
       message: row.message,
+      nickname: row.nickname || "",
       email,
       status: row.status,
       allowPublic: row.allow_public === 1,
@@ -479,6 +485,21 @@ async function routeApi(request, env, ctx) {
   }
   if (request.method === "PATCH" && path === "/api/admin/settings") {
     return updateSettings(request, env);
+  }
+  if (request.method === "GET" && path === "/api/admin/notifications/public-key") {
+    return publicVapidKey(env);
+  }
+  if (request.method === "GET" && path === "/api/admin/notifications/status") {
+    return subscriptionStatus(env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/subscribe") {
+    return subscribeBrowser(request,env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/unsubscribe") {
+    return unsubscribeBrowser(request,env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/clear") {
+    return clearSubscriptions(env);
   }
   if (request.method === "GET" && path === "/api/admin/submissions") {
     return listSubmissions(request, env);

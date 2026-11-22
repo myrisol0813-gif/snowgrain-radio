@@ -63,6 +63,15 @@
             maxlength="12000"
             placeholder="（什么都可以）"
           ></textarea>
+          <label class="sr-only" for="ask-nickname">昵称（选填）</label>
+          <input
+            id="ask-nickname"
+            name="nickname"
+            type="text"
+            maxlength="36"
+            autocomplete="off"
+            placeholder="如果想带小昵称或惊人匿名ID可选填这里"
+          >
 
           <div class="image-picker">
             <label class="soft-button" for="ask-images">添加图片 +</label>
@@ -122,7 +131,7 @@
             type="email"
             maxlength="254"
             autocomplete="email"
-            placeholder="【可能会用这个发成图！】"
+            placeholder="填写邮箱，用来接收成图"
             required
           >
           <div class="turnstile-slot" data-turnstile-slot="tuft"></div>

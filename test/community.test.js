@@ -55,8 +55,9 @@ test("gallery SQL restricts publication to consented, owner-approved answered le
   const response=await publicWall(new Request("https://radio.example/api/gallery"),env);
   assert.equal(response.status,200);
   const body=await response.json();
-  assert.deepEqual(body.items,[{question:"问候",answer:"你好",repliedAt:"2026-11-22"}]);
+  assert.deepEqual(body.items,[{question:"问候",nickname:"",answer:"你好",repliedAt:"2026-11-22"}]);
   assert.ok(!("email" in body.items[0]));
+  assert.equal(body.items[0].nickname,"");
   const sql=queries[0].sql;
   for(const must of ["kind='ask'","allow_public=1","is_public=1","INNER JOIN replies","length(trim(r.message))>0"])
     assert.ok(sql.includes(must),must);
