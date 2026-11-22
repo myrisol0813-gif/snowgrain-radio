@@ -18,7 +18,10 @@ function makeLetter(item){
   const question=document.createElement("p");question.className="gallery-question";question.textContent=item.question;
   const aLabel=document.createElement("p");aLabel.className="eyebrow";aLabel.textContent="回声";
   const answer=document.createElement("p");answer.className="gallery-answer";answer.textContent=item.answer||"（图片回声）";
-  article.append(heading,question,aLabel,answer);
+  const replySection=document.createElement("div");
+  replySection.className="gallery-letter-reply";
+  replySection.append(aLabel,answer);
+  article.append(heading,question,replySection);
   return article;
 }
 async function nextPage(){
