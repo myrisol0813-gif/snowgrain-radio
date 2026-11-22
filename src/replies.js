@@ -130,9 +130,10 @@ export async function saveReply(request,env,id,ctx) {
       return fail("回复图片只能用 JPG、PNG、WebP，单张不超过6MB。");
   }
   if(total>MAX_TOTAL_IMAGE_BYTES)return fail("回复图片合计不能超过20MB。");
-  const old=await env.DB.prepare(
+  const replaceMedia=images.length>0||String(form.get("clearImages"))==="true";
+  const old=replaceMedia ? await env.DB.prepare(
     "SELECT object_key FROM reply_attachments WHERE submission_id=?"
-  ).bind(id).all();
+  ).bind(id).all() : {results:[]};
   const now=new Date().toISOString(),stored=[],inserts=[];
   try {
     for(const img of images){
@@ -153,8 +154,7 @@ export async function saveReply(request,env,id,ctx) {
         "INSERT INTO replies(submission_id,message,updated_at) VALUES (?,?,?) "+
         "ON CONFLICT(submission_id) DO UPDATE SET message=excluded.message,updated_at=excluded.updated_at"
       ).bind(id,message,now),
-      env.DB.prepare("DELETE FROM reply_attachments WHERE submission_id=?").bind(id),
-      ...inserts,
+      ...(replaceMedia?[env.DB.prepare("DELETE FROM reply_attachments WHERE submission_id=?").bind(id),...inserts]:[]),
       env.DB.prepare("UPDATE submissions SET status='done',updated_at=? WHERE id=?").bind(now,id)
     ]);
   }catch(error){
