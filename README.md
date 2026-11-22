@@ -158,6 +158,26 @@ Revoke publication. Test wrong pickup code, owner deletion and code-holder
 deletion on disposable test letters only. Confirm deletion after R2 cleanup
 and that unrelated letters remain accessible.
 
+## V1.3: nicknames, letter cards and a private notification bell
+
+- Anonymous ask senders can optionally write a small nickname or anonymous ID (maximum 36 characters). It appears in the private owner inbox and only on an explicitly consented, owner-approved public text question/reply. Older or unnamed letters have no nickname.
+- The gallery displays each public text question and reply on an independent light paper card. Pictures, emails, receipt codes and internal identifiers never appear there.
+- Tuft email remains REQUIRED. The form placeholder reads “填写邮箱，用来接收成图”, with no brackets.
+- The owner control room has a voluntary browser Web Push bell. On HTTPS, click “开启此设备提醒” and grant browser/OS notification permissions. Notifications may arrive after the tab closes, subject to browser and Android power restrictions. This is browser push, NOT a Native APK notification integration.
+- The service worker displays only the fixed generic sentence “雪粒电台收到新信号” and no notification payload. The Worker does not send letter contents, images, nicknames, emails, admin tokens, or receipt codes to the push server. Owner can disable the current device or revoke all devices; at most eight devices are allowed.
+- The VAPID signing key is generated on first owner opt-in, encrypted at rest with AES-GCM under a key derived from the existing admin secret, and never committed to the repository. Rotation of the admin secret may require reinitializing the encrypted push key and re-registering devices.
+- Only known browser push service hosts are allowed for subscription endpoints; the old signed webhook is optional and unchanged.
+- migrations/0004_nicknames.sql adds the optional backward-compatible nickname column, and migrations/0005_web_push.sql creates private push tables. Automatic deployment applies remote migrations before Worker publish.
+
+### V1.3 acceptance
+
+1. Verify successful production build, D1 migration, and new code before sending real letters.
+2. Submit test questions with and without nicknames. Consent, reply, and publish the first in the private control room. Check that only the intended nickname and text pair show in the gallery.
+3. On a narrow mobile screen, check independent paper cards and that older public questions are unaffected.
+4. Confirm tuft email is still required and its new placeholder is visible.
+5. Sign into /admin/ on a supported Android browser, opt in to Web Push, allow notifications, and send a disposable letter from another device. Confirm only a generic notification appears, including with the browser tab closed when the OS permits.
+6. Disable this device and verify no new push. Use global revoke with care because it removes every device registration.
+
 ## Signal webhook
 
 When configured, every successful submission emits a JSON POST with no message text, email address, or image data:
