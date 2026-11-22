@@ -15,6 +15,7 @@ import {
 } from "./core.js";
 import {createReceipt,receiptInsert,lookupReceipt,receiptMedia,addReplyData,saveReply,adminReplyMedia} from "./replies.js";
 import {publicWall,changePublication,removeSubmission,removeOwnSubmission} from "./community.js";
+import {notifyBrowsers,publicVapidKey,subscriptionStatus,subscribeBrowser,unsubscribeBrowser,clearSubscriptions} from "./notify.js";
 
 const ADMIN_COOKIE = "snowgrain_admin";
 const STATUS_VALUES = new Set(["new", "held", "done", "archived"]);
@@ -256,6 +257,7 @@ async function handleSubmission(request, env, ctx) {
         kind,
         created_at: now
       }),
+      notifyBrowsers(env),
       env.DB.prepare("DELETE FROM rate_limits WHERE window_ends_at < ?")
         .bind(now)
         .run()
@@ -483,6 +485,21 @@ async function routeApi(request, env, ctx) {
   }
   if (request.method === "PATCH" && path === "/api/admin/settings") {
     return updateSettings(request, env);
+  }
+  if (request.method === "GET" && path === "/api/admin/notifications/public-key") {
+    return publicVapidKey(env);
+  }
+  if (request.method === "GET" && path === "/api/admin/notifications/status") {
+    return subscriptionStatus(env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/subscribe") {
+    return subscribeBrowser(request,env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/unsubscribe") {
+    return unsubscribeBrowser(request,env);
+  }
+  if (request.method === "POST" && path === "/api/admin/notifications/clear") {
+    return clearSubscriptions(env);
   }
   if (request.method === "GET" && path === "/api/admin/submissions") {
     return listSubmissions(request, env);
