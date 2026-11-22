@@ -3,15 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0d1620">
+    <meta name="theme-color" content="#f5f9fc">
     <meta name="description" content="雪粒电台收取一些路过的信号。">
     <title>雪粒电台</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="/app.js" defer></script>
+    <script src="/paper.js" defer></script>
   </head>
   <body>
     <div class="snow" aria-hidden="true"></div>
-    <main class="station-shell">
+    <main class="station-shell snow-letter-page">
       <header class="station-header">
         <div class="station-heading">
           <div class="station-mark" aria-hidden="true">
@@ -39,6 +40,8 @@
           小毛团
         </button>
       </nav>
+
+      <p class="pickup-link"><a href="/pickup/">凭取信码，取回一封回声</a></p>
 
       <section class="channel-panel is-active" data-channel-panel="ask">
         <div class="channel-copy">
@@ -111,6 +114,13 @@
         </form>
       </section>
 
+      <section class="receipt-dialog" data-receipt-dialog hidden role="status" aria-live="polite">
+        <h2>电台已经收好这封信。</h2>
+        <p>这是你的取信码，只显示这一次。请复制并妥善保存，之后回来取回回声。</p>
+        <div class="receipt-code-line"><code data-receipt-code></code><button type="button" data-receipt-copy>复制取信码</button></div>
+        <a href="/pickup/">去取回回声</a>
+        <button class="receipt-dismiss" type="button" data-receipt-dismiss>已经保存好了</button>
+      </section>
       <footer class="station-footer">
         <span>Elementera Coast · 2026</span>
         <span><a href="https://github.com/myrisol0813-gif/snowgrain-radio" rel="external">源代码</a> · <a href="/admin/" rel="nofollow">值班室</a></span>
