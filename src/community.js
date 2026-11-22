@@ -16,7 +16,7 @@ export async function publicWall(request,env) {
     "SELECT s.message AS question,r.message AS answer,r.updated_at AS replied_at "+
     "FROM submissions s INNER JOIN replies r ON r.submission_id=s.id "+
     "WHERE s.kind='ask' AND s.allow_public=1 AND s.is_public=1 "+
-    "AND length(trim(s.message))>0 "+
+    "AND length(trim(s.message))>0 AND length(trim(r.message))>0 "+
     "ORDER BY r.updated_at DESC,s.created_at DESC LIMIT ? OFFSET ?"
   ).bind(limit+1,limit*page).all();
   const rows=result.results||[];
@@ -34,7 +34,7 @@ export async function changePublication(request,env,id) {
   const sql=body.published
     ? "UPDATE submissions SET is_public=1,updated_at=? WHERE id=? AND kind='ask' "+
       "AND allow_public=1 AND length(trim(message))>0 "+
-      "AND EXISTS(SELECT 1 FROM replies WHERE submission_id=submissions.id)"
+      "AND EXISTS(SELECT 1 FROM replies WHERE submission_id=submissions.id AND length(trim(message))>0)"
     : "UPDATE submissions SET is_public=0,updated_at=? WHERE id=?";
   const result=await env.DB.prepare(sql).bind(now,id).run();
   if(!result.meta?.changes) return fail(
