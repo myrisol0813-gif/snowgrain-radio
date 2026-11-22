@@ -719,14 +719,18 @@ textarea:focus,input:focus {
 .signal-form input[type="text"]:focus-visible {outline:2px solid #99b4c6;}
 .gallery-list {gap:15px;padding:2px 0 17px;}
 .gallery-letter {
-  padding:19px clamp(16px,4vw,24px) 20px;
+  position:relative;
+  isolation:isolate;
+  padding:22px clamp(25px,4.6vw,34px) 23px;
   margin:0;
-  border:1px solid rgba(162,184,197,.32);
-  border-radius:15px 14px 16px 15px;
-  background:linear-gradient(147deg,rgba(255,255,255,.77) 0%,rgba(248,250,248,.75) 58%,rgba(244,249,252,.59) 100%);
-  box-shadow:0 3px 11px rgba(120,146,165,.08),inset 0 1px 0 rgba(255,255,255,.75);
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
   overflow-wrap:anywhere;
 }
+.gallery-letter > :not(.paper-backdrop) {position:relative;z-index:1;}
+.gallery-letter > .paper-backdrop {z-index:0;}
 .gallery-letter-heading {
   display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;
   margin:0 0 9px;
@@ -745,7 +749,7 @@ textarea:focus,input:focus {
 .gallery-answer {font-size:.93rem;line-height:1.78;}
 @media(max-width:520px) {
   .gallery-list {gap:11px;}
-  .gallery-letter {padding:16px 15px 17px;border-radius:13px;}
+  .gallery-letter {padding:19px 24px 21px;}
   .gallery-question {font-size:.94rem;margin-bottom:14px;}
   .gallery-answer {font-size:.91rem;}
   .signal-form input[type="text"] {font-size:.83rem;}

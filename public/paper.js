@@ -34,19 +34,21 @@ function sheetPath(w,h,shift=0,scale=1) {
 }
 function drawPaper(shell,svg) {
   const {width,height}=shell.getBoundingClientRect();
-  const w=Math.max(280,Math.round(width)),h=Math.max(240,Math.round(height));
+  const small=shell.classList.contains("gallery-letter");
+  const w=Math.max(small?180:280,Math.round(width)),h=Math.max(small?100:240,Math.round(height));
   svg.setAttribute("viewBox","0 0 "+w+" "+h);
   svg.setAttribute("width",w);
   svg.setAttribute("height",h);
-  const shadow=node("path",{d:sheetPath(w,h,4,.5),fill:"#B7C8D8","fill-opacity":".20"});
-  const paper=node("path",{d:sheetPath(w,h),fill:"#FFFEFA",stroke:"#AFC4D8","stroke-opacity":".30","stroke-width":"1"});
+  const shadow=node("path",{d:sheetPath(w,h,small?3:4,small?.38:.5),fill:"#B7C8D8","fill-opacity":small?".17":".20"});
+  const paper=node("path",{d:sheetPath(w,h,0,small?.55:1),fill:"#FFFEFA",stroke:"#AFC4D8","stroke-opacity":small?".39":".30","stroke-width":"1"});
+  if(small){svg.replaceChildren(shadow,paper);return;}
   const clip=node("g",{transform:"rotate(-20 40 34)",fill:"none",stroke:"#D7A84D"});
   clip.append(node("rect",{x:33,y:12,width:14,height:44,rx:8,"stroke-opacity":".43","stroke-width":2}));
   clip.append(node("rect",{x:37,y:19,width:7,height:30,rx:5,"stroke-opacity":".31","stroke-width":1.3}));
   svg.replaceChildren(shadow,paper,clip);
 }
 function mountPaper(shell) {
-  if(shell.querySelector(".paper-backdrop"))return;
+  if(shell.querySelector(":scope > .paper-backdrop"))return;
   const svg=node("svg",{class:"paper-backdrop","aria-hidden":"true",focusable:"false",preserveAspectRatio:"none"});
   shell.prepend(svg);
   let lastWidth=0,lastHeight=0;
@@ -60,3 +62,16 @@ function mountPaper(shell) {
   redraw();
 }
 document.querySelectorAll(".snow-letter-page").forEach(mountPaper);
+
+// Public gallery cards arrive asynchronously; give each one the same torn-paper
+// silhouette as the surrounding sheet, without another paperclip on every card.
+const galleryList=document.querySelector("[data-gallery-list]");
+if(galleryList){
+  const mountGalleryPapers=()=>{
+    for(const letter of galleryList.children){
+      if(letter.classList.contains("gallery-letter"))mountPaper(letter);
+    }
+  };
+  new MutationObserver(mountGalleryPapers).observe(galleryList,{childList:true});
+  mountGalleryPapers();
+}
