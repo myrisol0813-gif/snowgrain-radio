@@ -1,8 +1,8 @@
-# Snowgrain Radio / 雪粒电台
+# Flurry Radio / 雪粒电台
 
-Snowgrain Radio is a small self-hosted signal box for anonymous text, private image uploads, and one deliberately simple custom form.
+Flurry Radio is a small self-hosted signal box for anonymous text, private image uploads, and one deliberately simple custom form.
 
-The reference deployment is planned for https://radio.elementeracoast.com.
+The reference deployment is https://radio.elementeracoast.com. The existing repository, Worker, D1/R2 identifiers and webhook event names retain the legacy `snowgrain` technical prefix for compatibility; the public-facing English name is Flurry Radio.
 
 ## What it contains
 
@@ -207,4 +207,4 @@ This is intended for push relays and other owner-controlled notification adapter
 
 Code is licensed under GNU AGPL-3.0-only.
 
-The names Elementera Coast, Snowgrain Radio / 雪粒电台, their marks, and instance-specific writing are not granted as trademarks merely because the code is open source. Forks should rename their public-facing instance unless separately permitted.
+The names Elementera Coast, Flurry Radio / 雪粒电台, their marks, and instance-specific writing are not granted as trademarks merely because the code is open source. Forks should rename their public-facing instance unless separately permitted.
