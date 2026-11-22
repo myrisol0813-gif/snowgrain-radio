@@ -64,12 +64,61 @@ Optional signal delivery uses:
 - SIGNAL_WEBHOOK_URL
 - SIGNAL_WEBHOOK_SECRET
 
-Set ENVIRONMENT to production, replace TURNSTILE_SITE_KEY with the production site key, apply remote migrations, and deploy.
+Set ENVIRONMENT to production, replace TURNSTILE_SITE_KEY with the production site key, and keep runtime secrets in the Cloudflare Worker settings.
 
-       npm run db:migrate:remote
+Production deployment is now **one ordered command**, which performs checks, applies pending remote D1 migrations and deploys the Worker only when migration succeeds:
+
        npm run deploy
 
+Cloudflare Workers Builds remains the **only production deployment executor** (not GitHub Actions). In the Cloudflare dashboard, under this Worker's **Settings → Build**, configure:
+
+- Production branch: `main`
+- Build command: empty
+- Deploy command: `npm run deploy`
+- Preview command: `npx wrangler preview` (never apply production migrations from previews)
+- Build API token: the existing Workers Builds token, explicitly extended with **Account → D1 → Edit** for this account. Cloudflare's auto-created build token does not include D1 Edit by default. Do not paste any token into this repository or into chat.
+
+The sequence is fail-closed: `npm run check` → `wrangler d1 migrations apply DB --remote` → `wrangler deploy`. Failures stop deployment; they do **not** roll back already-applied migrations. Only add backwards-compatible migrations, and make database backups before destructive changes. The initial `0001_initial.sql` was previously executed in D1 Console, not Wrangler's migration history; the first automated run may reapply it, but all initial schema statements use `IF NOT EXISTS` / `OR IGNORE` and are designed to be idempotent.
+
 The reference custom domain is configured separately as radio.elementeracoast.com.
+
+## V1.1 draft: Snow Letter + pickup/replies
+
+The visitor pages use a responsive browser adaptation of the Native Snow Letter
+paper outline, gold paperclip, pale blue edge and subtle shadow. The paper grows
+with the contents.
+
+For the ordinary `ask` channel, a successful submission returns one
+cryptographically random 192-bit pickup code, displayed once. The server stores
+only a SHA-256 digest of that high-entropy code.
+Visitors can enter the code at `/pickup/` to see **only** the owner's reply.
+Unanswered letters remain pending without exposing other submissions.
+The owner's `/admin/` page now includes a reply form for each ask with
+text (up to 12,000 characters) and up to four private R2 images. Replacing
+reply images is explicit. The `tuft` channel retains its email-based delivery
+and deliberately has **no** pickup code or queue progress.
+
+**V1.1 release order once Workers Builds is configured:**
+1. Confirm the Deploy command is `npm run deploy` and that the build API token has D1 Edit access.
+2. Confirm the draft PR's GitHub Actions CI passes and then merge the PR to `main`.
+3. Cloudflare automatically checks, applies `0001_initial.sql` if not already tracked, applies `0002_replies.sql`, and deploys only after these steps succeed.
+4. In D1 Console verify `receipt_tokens`, `replies` and `reply_attachments` are present. Existing submissions should still be intact.
+5. Test a new ordinary ask submission and copy its code; the pickup page should show pending. Reply with text/image in `/admin/`, then retrieve it with the code.
+6. Test an incorrect code and a tuft submission (which should never receive a code).
+
+Do not merge until the Cloudflare Deploy command and build token are configured; the existing default `npx wrangler deploy` bypasses the remote migration step.
+
+Earlier ordinary submissions created before V1.1 do not have pickup codes; they
+are still visible to the owner but cannot be retrospectively claimed by visitors.
+Rotating RATE_LIMIT_SECRET does not invalidate existing pickup codes. The reply text/images live in D1/R2 and remain
+private behind the matching code.
+
+**Notifications:** The existing signed metadata-only webhook remains optional
+and has not been connected to the Elementera Coast native Android app. The native
+app currently has no push receiver/permission configured in this repository.
+Do not claim that installing this branch alone provides Android notifications.
+That follow-up requires implementing and securing a dedicated receiver,
+notification delivery, and APK build.
 
 ## Signal webhook
 

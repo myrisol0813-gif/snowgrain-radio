@@ -13,6 +13,24 @@ const toast = document.querySelector("[data-success-toast]");
 const successText = document.querySelector("[data-success-text]");
 const imageInput = document.querySelector("#ask-images");
 const imagePreview = document.querySelector("[data-image-preview]");
+const receiptDialog=document.querySelector("[data-receipt-dialog]");
+const receiptCodeEl=document.querySelector("[data-receipt-code]");
+let activeReceiptCode="";
+document.querySelector("[data-receipt-copy]").addEventListener("click",async(event)=>{
+  if(!activeReceiptCode)return;
+  try {
+    await navigator.clipboard.writeText(activeReceiptCode);
+    event.currentTarget.textContent="已复制";
+  }catch{
+    event.currentTarget.textContent="请长按编码复制";
+  }
+});
+document.querySelector("[data-receipt-dismiss]").addEventListener("click",()=>{
+  activeReceiptCode="";
+  receiptCodeEl.textContent="";
+  receiptDialog.hidden=true;
+});
+
 
 function setChannel(channel) {
   state.channel = channel;
@@ -88,7 +106,7 @@ function renderTurnstile(siteKey) {
     if (!slot || state.turnstile[kind] !== null) return;
     state.turnstile[kind] = window.turnstile.render(slot, {
       sitekey: siteKey,
-      theme: "dark",
+      theme: "light",
       size: "flexible",
       callback: (token) => {
         state.turnstileToken[kind] = token;
@@ -188,7 +206,15 @@ async function submitForm(event) {
       window.turnstile.reset(state.turnstile[kind]);
       state.turnstileToken[kind] = "";
     }
-    showToast(kind === "tuft" ? "【塞好了！】" : "【收到了！】");
+    if(kind==="ask" && result.receiptCode){
+      activeReceiptCode=result.receiptCode;
+      receiptCodeEl.textContent=activeReceiptCode;
+      receiptDialog.hidden=false;
+      document.querySelector("[data-receipt-copy]").textContent="复制取信码";
+      receiptDialog.scrollIntoView({behavior:"smooth",block:"center"});
+    }else{
+      showToast(kind==="tuft"?"【塞好了！】":"【收到了！】");
+    }
   } catch (error) {
     status.textContent = error.message || "电台刚才没有接稳。";
   } finally {

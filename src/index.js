@@ -13,6 +13,7 @@ import {
   validateMessage,
   verifyAdminSession
 } from "./core.js";
+import {createReceipt,receiptInsert,lookupReceipt,receiptMedia,addReplyData,saveReply,adminReplyMedia} from "./replies.js";
 
 const ADMIN_COOKIE = "snowgrain_admin";
 const STATUS_VALUES = new Set(["new", "held", "done", "archived"]);
@@ -174,6 +175,7 @@ async function handleSubmission(request, env, ctx) {
 
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
+  const receipt = kind === "ask" ? await createReceipt(env) : null;
   let encryptedEmail = { ciphertext: null, iv: null };
   if (kind === "tuft") {
     if (!env.EMAIL_ENCRYPTION_KEY) return fail("电台的邮箱保险箱还没有准备好。", 503);
@@ -216,6 +218,7 @@ async function handleSubmission(request, env, ctx) {
         now,
         now
       ),
+      ...(receipt ? [receiptInsert(env, id, receipt.hash, now)] : []),
       ...attachmentRows.map((row) =>
         env.DB.prepare(
           "INSERT INTO attachments(" +
@@ -253,7 +256,7 @@ async function handleSubmission(request, env, ctx) {
     ])
   );
 
-  return json({ ok: true, id }, 201);
+  return json({ ok: true, ...(receipt ? { receiptCode: receipt.code } : {}) }, 201);
 }
 
 async function handleAdminLogin(request, env) {
@@ -346,6 +349,7 @@ async function listSubmissions(request, env) {
       attachments: bySubmission.get(row.id) || []
     });
   }
+  await addReplyData(env, output);
   return json({ ok: true, submissions: output });
 }
 
@@ -441,6 +445,13 @@ async function routeApi(request, env, ctx) {
   if (request.method === "POST" && path === "/api/submissions") {
     return handleSubmission(request, env, ctx);
   }
+  if (request.method === "POST" && path === "/api/receipt/lookup") {
+    return lookupReceipt(request, env);
+  }
+  const receiptImageMatch = path.match(/^\/api\/receipt\/media\/([a-f0-9-]+)$/i);
+  if (request.method === "POST" && receiptImageMatch) {
+    return receiptMedia(request, env, receiptImageMatch[1]);
+  }
   if (request.method === "POST" && path === "/api/admin/login") {
     return handleAdminLogin(request, env);
   }
@@ -465,6 +476,14 @@ async function routeApi(request, env, ctx) {
   const submissionMatch = path.match(/^\/api\/admin\/submissions\/([a-f0-9-]+)$/i);
   if (request.method === "PATCH" && submissionMatch) {
     return updateSubmission(request, env, submissionMatch[1]);
+  }
+  const replyMatch = path.match(/^\/api\/admin\/submissions\/([a-f0-9-]+)\/reply$/i);
+  if (request.method === "POST" && replyMatch) {
+    return saveReply(request, env, replyMatch[1], ctx);
+  }
+  const adminReplyImageMatch = path.match(/^\/api\/admin\/reply-media\/([a-f0-9-]+)$/i);
+  if (request.method === "GET" && adminReplyImageMatch) {
+    return adminReplyMedia(env, adminReplyImageMatch[1]);
   }
   const mediaMatch = path.match(/^\/api\/admin\/media\/([a-f0-9-]+)$/i);
   if (request.method === "GET" && mediaMatch) {
