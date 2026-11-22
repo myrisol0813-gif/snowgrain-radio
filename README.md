@@ -79,7 +79,7 @@ with the contents.
 
 For the ordinary `ask` channel, a successful submission returns one
 cryptographically random 192-bit pickup code, displayed once. The server stores
-only a keyed HMAC digest of that code (keyed by RATE_LIMIT_SECRET).
+only a SHA-256 digest of that high-entropy code.
 Visitors can enter the code at `/pickup/` to see **only** the owner's reply.
 Unanswered letters remain pending without exposing other submissions.
 The owner's `/admin/` page now includes a reply form for each ask with
@@ -100,8 +100,7 @@ and deliberately has **no** pickup code or queue progress.
 
 Earlier ordinary submissions created before V1.1 do not have pickup codes; they
 are still visible to the owner but cannot be retrospectively claimed by visitors.
-Changing RATE_LIMIT_SECRET later invalidates existing pickup codes. Keep a secure
-backup of the exact secret value. The reply text/images live in D1/R2 and remain
+Rotating RATE_LIMIT_SECRET does not invalidate existing pickup codes. The reply text/images live in D1/R2 and remain
 private behind the matching code.
 
 **Notifications:** The existing signed metadata-only webhook remains optional
