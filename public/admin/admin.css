@@ -348,3 +348,55 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Snow Letter control room and owner reply editor */
+.admin-shell.snow-letter-page {
+  width:min(100%,900px);
+  padding:82px clamp(32px,6vw,58px) 48px;
+}
+.login-card,.control-card,.submission-card,.empty-inbox {
+  background:rgba(248,251,253,.49);
+  border:1px solid rgba(175,196,216,.27);
+  border-radius:18px;
+  box-shadow:0 4px 18px rgba(149,172,190,.055);
+}
+.login-card,.control-card {padding:22px;}
+.back-link,.ghost-button,.logout-button {
+  color:#557995;background:rgba(175,196,216,.16);
+}
+.switch-row label {background:rgba(175,196,216,.13);color:var(--text);}
+select {
+  color:#42586b;
+  background:
+    linear-gradient(45deg,transparent 50%,#718ea5 50%) calc(100% - 16px) 17px/5px 5px no-repeat,
+    linear-gradient(135deg,#718ea5 50%,transparent 50%) calc(100% - 11px) 17px/5px 5px no-repeat,
+    rgba(175,196,216,.15);
+}
+.submission-actions select {color:#42586b;}
+.email-row {background:rgba(175,196,216,.14);}
+.email-row code {color:#4c7896;}
+.email-row button {color:#53758d;background:rgba(175,196,216,.26);}
+.attachment-button {background:#e5eef4;}
+.attachment-button::after {background:rgba(41,63,81,.72);}
+.signal-kind {color:#4e728b;background:rgba(175,196,216,.22);}
+.signal-kind.is-tuft {color:#80632f;background:rgba(215,168,77,.15);}
+.reply-editor {
+  display:grid;gap:13px;margin-top:23px;padding-top:18px;
+  border-top:1px solid rgba(175,196,216,.3);
+}
+.reply-editor label {display:grid;gap:9px;color:#647e90;font-size:.89rem;}
+.reply-editor textarea {
+  width:100%;min-height:140px;padding:13px 14px;resize:vertical;
+  background:rgba(255,255,255,.6);border:1px solid rgba(175,196,216,.27);
+  border-radius:12px;color:var(--text);line-height:1.8;
+}
+.reply-editor input[type=file] {max-width:100%;font-size:.85rem;color:#688397;}
+.reply-editor .reply-clear {display:flex;align-items:center;gap:7px;}
+.reply-editor .reply-clear input {accent-color:#6c8ca4;}
+.reply-editor button[type=submit] {width:100%;font-size:.9rem;}
+.reply-editor .form-status {margin:0;}
+@media(max-width:620px) {
+  .admin-shell.snow-letter-page {width:100%;padding:77px 32px 45px;}
+  .admin-header {gap:14px;}
+  .control-title {flex-wrap:wrap;}
+}
