@@ -1,0 +1,7 @@
+ADMIN_TOKEN=replace-with-a-long-random-string
+ADMIN_SESSION_SECRET=replace-with-another-long-random-string
+EMAIL_ENCRYPTION_KEY=replace-with-base64-encoded-32-random-bytes
+RATE_LIMIT_SECRET=replace-with-a-long-random-string
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+SIGNAL_WEBHOOK_URL=
+SIGNAL_WEBHOOK_SECRET=

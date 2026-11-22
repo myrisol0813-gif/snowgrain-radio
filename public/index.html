@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1620">
+    <meta name="description" content="雪粒电台收取一些路过的信号。">
+    <title>雪粒电台</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="snow" aria-hidden="true"></div>
+    <main class="station-shell">
+      <header class="station-header">
+        <div class="station-heading">
+          <div class="station-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <p class="eyebrow">SNOWGRAIN RADIO</p>
+          <h1>雪粒电台</h1>
+          <p class="station-subtitle">收取一些路过的信号。</p>
+        </div>
+        <img
+          class="station-messenger"
+          src="/assets/snake-mail.png"
+          width="960"
+          height="770"
+          alt="叼着信件的小蛇"
+          fetchpriority="high"
+        >
+      </header>
+
+      <nav class="channel-tabs" aria-label="选择频道">
+        <button class="channel-tab is-active" type="button" data-channel-target="ask">
+          随便发点什么
+        </button>
+        <button class="channel-tab" type="button" data-channel-target="tuft">
+          小毛团
+        </button>
+      </nav>
+
+      <section class="channel-panel is-active" data-channel-panel="ask">
+        <div class="channel-copy">
+          <p class="channel-number">01 · 收信频道</p>
+          <h2>随便往这里发点什么</h2>
+        </div>
+        <div class="closed-note" data-closed-note="ask" hidden>
+          今天暂时不收新的信号。
+        </div>
+        <form class="signal-form" data-signal-form="ask">
+          <label class="sr-only" for="ask-message">想说的话</label>
+          <textarea
+            id="ask-message"
+            name="message"
+            rows="9"
+            maxlength="12000"
+            placeholder="（什么都可以）"
+          ></textarea>
+
+          <div class="image-picker">
+            <label class="soft-button" for="ask-images">放几张图</label>
+            <input
+              id="ask-images"
+              name="images"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+            >
+            <span class="image-hint">最多四张</span>
+          </div>
+          <div class="image-preview" data-image-preview aria-live="polite"></div>
+          <div class="turnstile-slot" data-turnstile-slot="ask"></div>
+          <p class="form-status" data-form-status aria-live="polite"></p>
+          <button class="submit-button" type="submit">发出信号</button>
+        </form>
+      </section>
+
+      <section class="channel-panel" data-channel-panel="tuft" hidden>
+        <div class="channel-copy tuft-copy">
+          <p class="channel-number">02 · 毛团频道</p>
+          <h2>呔，拎住几只小毛团</h2>
+          <p class="tuft-note">【人的无偿献丑区，可以堆放人和小机的基础设定领取随机小动物鼻嘎，人类可能画不了致歉，时间也比较随机可能会较久致歉！】</p>
+        </div>
+        <div class="closed-note" data-closed-note="tuft" hidden>
+          毛团暂时太多，人类的两只手已经拎不住了，先不继续往里塞，等罐子空一点再开。（本消息来自一条蛇）
+        </div>
+        <form class="signal-form" data-signal-form="tuft">
+          <label class="sr-only" for="tuft-message">基础设定</label>
+          <textarea
+            id="tuft-message"
+            name="message"
+            rows="11"
+            maxlength="12000"
+            placeholder="（让我瞅瞅毛土豆们）"
+            required
+          ></textarea>
+          <label class="sr-only" for="tuft-email">邮箱</label>
+          <input
+            id="tuft-email"
+            name="email"
+            type="email"
+            maxlength="254"
+            autocomplete="email"
+            placeholder="【可能会用这个发成图！】"
+            required
+          >
+          <div class="turnstile-slot" data-turnstile-slot="tuft"></div>
+          <p class="form-status" data-form-status aria-live="polite"></p>
+          <button class="submit-button tuft-button" type="submit">往里塞一团</button>
+        </form>
+      </section>
+
+      <footer class="station-footer">
+        <span>Elementera Coast · 2026</span>
+        <span><a href="https://github.com/myrisol0813-gif/snowgrain-radio" rel="external">源代码</a> · <a href="/admin/" rel="nofollow">值班室</a></span>
+      </footer>
+    </main>
+
+    <div class="success-toast" data-success-toast role="status" aria-live="polite" hidden>
+      <strong data-success-text>【塞好了！】</strong>
+    </div>
+  </body>
+</html>

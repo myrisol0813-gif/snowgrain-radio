@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1620">
+    <meta name="robots" content="noindex,nofollow">
+    <title>雪粒电台 · 值班室</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/admin/admin.css">
+    <script src="/admin/admin.js" defer></script>
+  </head>
+  <body>
+    <div class="snow" aria-hidden="true"></div>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <a class="back-link" href="/">雪粒电台</a>
+        <div>
+          <p class="eyebrow">CONTROL ROOM</p>
+          <h1>值班室</h1>
+        </div>
+      </header>
+
+      <section class="login-card" data-login-card hidden>
+        <p>蛇的值班钥匙放在哪里了？</p>
+        <form data-login-form>
+          <label class="sr-only" for="admin-password">管理钥匙</label>
+          <input
+            id="admin-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="管理钥匙"
+            required
+          >
+          <p class="form-status" data-login-status aria-live="polite"></p>
+          <button class="submit-button" type="submit">开门</button>
+        </form>
+      </section>
+
+      <section class="admin-dashboard" data-admin-dashboard hidden>
+        <div class="control-card">
+          <div class="control-title">
+            <div>
+              <p class="eyebrow">INTAKE</p>
+              <h2>入口</h2>
+            </div>
+            <button class="ghost-button" type="button" data-refresh>刷新信号</button>
+          </div>
+          <div class="switch-row">
+            <label>
+              <span><strong>收信频道</strong><small>随便发点什么</small></span>
+              <input type="checkbox" data-setting="askOpen">
+            </label>
+            <label>
+              <span><strong>毛团频道</strong><small>往里塞一团</small></span>
+              <input type="checkbox" data-setting="tuftOpen">
+            </label>
+          </div>
+        </div>
+
+        <div class="signal-toolbar">
+          <div>
+            <p class="eyebrow">INBOX</p>
+            <h2>新信号 <span data-signal-count>0</span></h2>
+          </div>
+          <div class="filters">
+            <label>
+              <span class="sr-only">频道</span>
+              <select data-kind-filter>
+                <option value="">全部频道</option>
+                <option value="ask">收信频道</option>
+                <option value="tuft">毛团频道</option>
+              </select>
+            </label>
+            <label>
+              <span class="sr-only">状态</span>
+              <select data-status-filter>
+                <option value="">全部状态</option>
+                <option value="new">刚收到</option>
+                <option value="held">已经拎住</option>
+                <option value="done">已经掉落</option>
+                <option value="archived">收起来了</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <p class="admin-message" data-admin-message aria-live="polite"></p>
+        <div class="submission-list" data-submission-list></div>
+        <div class="empty-inbox" data-empty-inbox hidden>现在没有符合条件的信号。</div>
+
+        <button class="logout-button" type="button" data-logout>锁好值班室</button>
+      </section>
+    </main>
+  </body>
+</html>
