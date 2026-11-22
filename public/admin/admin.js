@@ -313,7 +313,7 @@ function createSubmissionCard(submission) {
     publicRow.className="publication-control";
     if(!submission.allowPublic){
       publicRow.textContent="本封信未授权公开展示，仅能私下回复。";
-    }else if(!submission.reply||!submission.message.trim()){
+    }else if(!submission.reply?.message?.trim()||!submission.message.trim()){
       publicRow.textContent="已同意公开文字问答。回复后可选择展示。";
     }else{
       const publicLabel=document.createElement("label");
