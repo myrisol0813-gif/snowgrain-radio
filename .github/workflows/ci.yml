@@ -28,5 +28,8 @@ jobs:
       - name: Run checks
         run: npm run check
 
+      - name: Apply local D1 schema and V1.1 migration
+        run: npm run db:migrate:local
+
       - name: Verify Worker bundle
         run: npx wrangler deploy --dry-run --outdir dist
