@@ -60,6 +60,23 @@
           </div>
         </div>
 
+        <section class="control-card notification-card" aria-labelledby="notification-title">
+          <div class="notification-heading">
+            <div>
+              <p class="eyebrow">SIGNAL BELL</p>
+              <h2 id="notification-title">新信提醒</h2>
+            </div>
+            <span class="notification-device-count" data-notification-count>未开启</span>
+          </div>
+          <p class="notification-help">允许此设备接收新信通知。只通知「雪粒电台收到新信号」，不会发送正文、邮箱或照片。</p>
+          <div class="notification-actions">
+            <button type="button" class="ghost-button" data-notification-enable>开启此设备提醒</button>
+            <button type="button" class="ghost-button" data-notification-disable hidden>关闭此设备提醒</button>
+            <button type="button" class="ghost-button" data-notification-clear>撤销全部设备授权</button>
+          </div>
+          <p class="form-status" data-notification-status role="status" aria-live="polite"></p>
+        </section>
+
         <div class="signal-toolbar">
           <div>
             <p class="eyebrow">INBOX</p>
