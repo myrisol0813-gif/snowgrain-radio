@@ -39,6 +39,16 @@ async function rateLimit(request,env,kind) {
   return Number(record?.count||1)<=24;
 }
 
+export async function getReceiptOwnerFromRequest(request,env) {
+  const checked=await verifyCodeRequest(request,env);
+  if(checked.failure)return checked;
+  const row=await env.DB.prepare(
+    "SELECT submission_id FROM receipt_tokens WHERE token_hash=?"
+  ).bind(checked.hash).first();
+  if(!row)return {failure:fail("没有找到这封信，请检查取信码。",404)};
+  return {id:row.submission_id};
+}
+
 export async function createReceipt(env) {
   const code=newCode();
   return {code,hash:await codeHash(env,code)};
