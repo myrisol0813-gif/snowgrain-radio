@@ -71,6 +71,46 @@ Set ENVIRONMENT to production, replace TURNSTILE_SITE_KEY with the production si
 
 The reference custom domain is configured separately as radio.elementeracoast.com.
 
+## V1.1 draft: Snow Letter + pickup/replies
+
+The visitor pages use a responsive browser adaptation of the Native Snow Letter
+paper outline, gold paperclip, pale blue edge and subtle shadow. The paper grows
+with the contents.
+
+For the ordinary `ask` channel, a successful submission returns one
+cryptographically random 192-bit pickup code, displayed once. The server stores
+only a keyed HMAC digest of that code (keyed by RATE_LIMIT_SECRET).
+Visitors can enter the code at `/pickup/` to see **only** the owner's reply.
+Unanswered letters remain pending without exposing other submissions.
+The owner's `/admin/` page now includes a reply form for each ask with
+text (up to 12,000 characters) and up to four private R2 images. Replacing
+reply images is explicit. The `tuft` channel retains its email-based delivery
+and deliberately has **no** pickup code or queue progress.
+
+**Deploy order for the existing production database:**
+1. Before merging/deploying this branch, execute `migrations/0002_replies.sql`
+   exactly once in the live D1 Console. This migration adds new tables and does
+   not delete or rewrite existing submissions.
+2. Confirm `receipt_tokens`, `replies`, and `reply_attachments` exist.
+3. Merge and deploy. Do not deploy code that uses the new tables before the migration.
+4. Test an ordinary ask submission and copy its code. Before an admin reply,
+   the pickup page should show a pending message. Submit a text/image reply in
+   `/admin/`, then use the code to retrieve only that reply.
+5. Test a wrong code and a tuft submission. The latter must not receive a code.
+
+Earlier ordinary submissions created before V1.1 do not have pickup codes; they
+are still visible to the owner but cannot be retrospectively claimed by visitors.
+Changing RATE_LIMIT_SECRET later invalidates existing pickup codes. Keep a secure
+backup of the exact secret value. The reply text/images live in D1/R2 and remain
+private behind the matching code.
+
+**Notifications:** The existing signed metadata-only webhook remains optional
+and has not been connected to the Elementera Coast native Android app. The native
+app currently has no push receiver/permission configured in this repository.
+Do not claim that installing this branch alone provides Android notifications.
+That follow-up requires implementing and securing a dedicated receiver,
+notification delivery, and APK build.
+
 ## Signal webhook
 
 When configured, every successful submission emits a JSON POST with no message text, email address, or image data:
