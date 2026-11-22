@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS receipt_tokens (
   token_hash TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS receipt_tokens_hash_idx ON receipt_tokens(token_hash);
-
 CREATE TABLE IF NOT EXISTS replies (
   submission_id TEXT PRIMARY KEY REFERENCES submissions(id) ON DELETE CASCADE,
   message TEXT NOT NULL,
