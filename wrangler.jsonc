@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "snowgrain-radio",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "b0f642d3-ca85-42cb-95a8-6c1d3683ba25",
       "migrations_dir": "migrations"
     }
   ],
@@ -24,8 +24,8 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "development",
-    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    "ENVIRONMENT": "production",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGM4Xj89TEx278XK",
     "RATE_LIMIT_MAX": "12"
   }
 }
