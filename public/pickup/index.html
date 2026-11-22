@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f9fc">
+  <meta name="robots" content="noindex,nofollow">
+  <title>取回回声 · 雪粒电台</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/pickup/pickup.js" defer></script>
+  <script src="/paper.js" defer></script>
+</head>
+<body>
+  <main class="station-shell snow-letter-page pickup-page">
+    <header class="station-header">
+      <div class="station-heading">
+        <p class="eyebrow">SNOWGRAIN RADIO · RETURN</p>
+        <h1>取回回声</h1>
+        <p class="station-subtitle">曾经放进电台的那封信，也许已经有了回音。</p>
+      </div>
+    </header>
+    <section class="channel-panel">
+      <form data-pickup-form>
+        <label for="pickup-code">那枚只展示过一次的取信码</label>
+        <input id="pickup-code" name="code" type="text" maxlength="64"
+          autocomplete="off" autocapitalize="off" spellcheck="false" required
+          placeholder="在这里粘贴取信码">
+        <button type="submit" class="submit-button">听听有没有回声</button>
+        <p class="form-status" data-pickup-status role="status"></p>
+      </form>
+      <article class="pickup-reply" data-pickup-reply hidden>
+        <p class="eyebrow">一封回声</p>
+        <p class="pickup-reply-text" data-reply-text></p>
+        <div class="image-preview" data-reply-images></div>
+      </article>
+    </section>
+    <footer class="station-footer"><a href="/">返回雪粒电台</a><span>只为持有码的人开封</span></footer>
+  </main>
+</body>
+</html>
