@@ -126,7 +126,7 @@ function createEmailRow(email) {
   return row;
 }
 
-function createAttachments(attachments) {
+function createAttachments(attachments, isReply = false) {
   const grid = document.createElement("div");
   grid.className = "attachment-grid";
   attachments.forEach((attachment) => {
@@ -137,7 +137,7 @@ function createAttachments(attachments) {
     const image = document.createElement("img");
     image.loading = "lazy";
     image.alt = "";
-    image.src = "/api/admin/media/" + encodeURIComponent(attachment.id);
+    image.src = (isReply ? "/api/admin/reply-media/" : "/api/admin/media/") + encodeURIComponent(attachment.id);
     button.append(image);
     button.addEventListener("click", () => {
       button.classList.toggle("is-revealed");
@@ -183,6 +183,73 @@ function statusSelect(submission) {
   return actions;
 }
 
+function createReplyEditor(submission) {
+  const form=document.createElement("form");
+  form.className="reply-editor";
+  const title=document.createElement("label");
+  title.textContent=submission.reply?"编辑已经发出的回声":"给这封信写回声";
+  const textarea=document.createElement("textarea");
+  textarea.name="message";
+  textarea.rows=4;
+  textarea.maxLength=12000;
+  textarea.placeholder="写一点回声给这封信……";
+  textarea.value=submission.reply?.message||"";
+  title.append(textarea);
+  form.append(title);
+  if(submission.reply?.attachments?.length){
+    form.append(createAttachments(submission.reply.attachments,true));
+  }
+  const photos=document.createElement("input");
+  photos.type="file";
+  photos.name="images";
+  photos.multiple=true;
+  photos.accept="image/jpeg,image/png,image/webp";
+  const photoLabel=document.createElement("label");
+  photoLabel.textContent="附上回复图片（最多四张；选择新图会替换旧图）";
+  photoLabel.append(photos);
+  form.append(photoLabel);
+  if(submission.reply?.attachments?.length){
+    const clearLabel=document.createElement("label");
+    clearLabel.className="reply-clear";
+    const clear=document.createElement("input");
+    clear.type="checkbox";
+    clear.name="clearImages";
+    clearLabel.append(clear,document.createTextNode("清除已有回复图片"));
+    form.append(clearLabel);
+  }
+  const status=document.createElement("p");
+  status.className="form-status";
+  status.setAttribute("role","status");
+  const button=document.createElement("button");
+  button.type="submit";
+  button.className="submit-button";
+  button.textContent="保存并发出回声";
+  form.append(button,status);
+  form.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    status.textContent="";
+    button.disabled=true;
+    try {
+      const data=new FormData();
+      data.set("message",textarea.value);
+      if(form.elements.clearImages?.checked)data.set("clearImages","true");
+      const selected=[...photos.files];
+      if(selected.length>4)throw Error("回复最多只能附四张图片。");
+      for(const img of selected)data.append("images",img,img.name);
+      const response=await fetch("/api/admin/submissions/"+encodeURIComponent(submission.id)+"/reply",{
+        method:"POST",body:data,credentials:"same-origin"
+      });
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||"保存失败。");
+      await loadSubmissions();
+      adminMessage.textContent="回声已保存，访客现在可以凭取信码读到。";
+    }catch(error) {
+      status.textContent=error.message||"保存失败。";
+    }finally{button.disabled=false;}
+  });
+  return form;
+}
+
 function createSubmissionCard(submission) {
   const card = document.createElement("article");
   card.className = "submission-card";
@@ -204,6 +271,7 @@ function createSubmissionCard(submission) {
   if (submission.email) card.append(createEmailRow(submission.email));
   if (submission.attachments.length) card.append(createAttachments(submission.attachments));
   card.append(statusSelect(submission));
+  if(submission.kind==="ask") card.append(createReplyEditor(submission));
   return card;
 }
 
