@@ -280,6 +280,12 @@ function createSubmissionCard(submission) {
   const statusLabels={new:"刚收到",held:"已经拎住",done:"已经掉落",archived:"收起来了"};
   state.textContent=statusLabels[submission.status]||"";
   top.append(kind,time,state);
+  if(submission.nickname){
+    const nick=document.createElement("span");
+    nick.className="state-hint";
+    nick.textContent="寄信人 · "+submission.nickname;
+    top.append(nick);
+  }
   const preview=document.createElement("p");
   preview.className="letter-preview";
   preview.textContent=submission.message||"（附图来信）";
