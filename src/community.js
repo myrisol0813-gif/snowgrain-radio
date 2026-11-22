@@ -13,7 +13,7 @@ export async function publicWall(request,env) {
   const page=Number.isInteger(parsed)&&parsed>=0&&parsed<=100 ? parsed : 0;
   const limit=12;
   const result=await env.DB.prepare(
-    "SELECT s.message AS question,r.message AS answer,r.updated_at AS replied_at "+
+    "SELECT s.message AS question,s.nickname AS nickname,r.message AS answer,r.updated_at AS replied_at "+
     "FROM submissions s INNER JOIN replies r ON r.submission_id=s.id "+
     "WHERE s.kind='ask' AND s.allow_public=1 AND s.is_public=1 "+
     "AND length(trim(s.message))>0 AND length(trim(r.message))>0 "+
@@ -22,7 +22,7 @@ export async function publicWall(request,env) {
   const rows=result.results||[];
   // Gallery deliberately excludes email, attachments, raw IDs and internal status.
   return json({ok:true,items:rows.slice(0,limit).map(row=>({
-    question:row.question,answer:row.answer,repliedAt:row.replied_at
+    question:row.question,nickname:row.nickname||"",answer:row.answer,repliedAt:row.replied_at
   })),hasMore:rows.length>limit,page});
 }
 
