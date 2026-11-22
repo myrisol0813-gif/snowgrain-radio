@@ -20,8 +20,11 @@ function newCode() {
 }
 function validCode(code) {return typeof code==="string" && /^[A-Za-z0-9_-]{32}$/.test(code);}
 async function codeHash(env,code) {
-  if(!env.RATE_LIMIT_SECRET) throw Error("RATE_LIMIT_SECRET required");
-  return hmacHex(env.RATE_LIMIT_SECRET,"snowgrain:receipt:"+code);
+  // 192 random bits make brute forcing infeasible; a digest avoids
+  // coupling receipt retrieval to the separately rotated rate-limit secret.
+  const data=new TextEncoder().encode("snowgrain:receipt:"+code);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-256",data));
+  return Array.from(digest,x=>x.toString(16).padStart(2,"0")).join("");
 }
 
 async function rateLimit(request,env,kind) {
