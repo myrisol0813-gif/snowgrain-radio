@@ -15,7 +15,7 @@
     <header class="station-header">
       <div class="station-heading">
         <p class="eyebrow">SNOWGRAIN RADIO · RETURN</p>
-        <h1>取回回声</h1>
+        <h1>凭取信码查看回复</h1>
         <p class="station-subtitle">曾经放进电台的那封信，也许已经有了回音。</p>
       </div>
     </header>
@@ -25,7 +25,7 @@
         <input id="pickup-code" name="code" type="text" maxlength="64"
           autocomplete="off" autocapitalize="off" spellcheck="false" required
           placeholder="在这里粘贴取信码">
-        <button type="submit" class="submit-button">听听有没有回声</button>
+        <button type="submit" class="submit-button">查看我的回复</button>
         <p class="form-status" data-pickup-status role="status"></p>
       </form>
       <article class="pickup-reply" data-pickup-reply hidden>
@@ -33,6 +33,10 @@
         <p class="pickup-reply-text" data-reply-text></p>
         <div class="image-preview" data-reply-images></div>
       </article>
+      <div class="receipt-owner-actions" data-receipt-owner-actions hidden>
+        <button type="button" class="danger-link" data-delete-own>删除这封信与回复</button>
+        <p>永久删除后，取信码立即失效，图片也会删除，无法恢复。</p>
+      </div>
     </section>
     <footer class="station-footer"><a href="/">返回雪粒电台</a><span>只为持有码的人开封</span></footer>
   </main>
